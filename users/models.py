@@ -42,3 +42,25 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class Follow(models.Model):
+    follower = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Кому нравится'
+    )
+    following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Кто нравится'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['follower', 'following'],
+                name='unique_follow')
+        ]

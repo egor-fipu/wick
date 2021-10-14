@@ -1,4 +1,5 @@
 from PIL import Image, ImageOps, ImageDraw, ImageFont
+from django.template.loader import render_to_string
 
 
 def watermark_text(input_image, output_image_path, text, pos):
@@ -30,3 +31,19 @@ def watermark_photo(input_image, output_image_path, pos):
     transparent.paste(base_image, (0, 0))
     transparent.paste(watermark, pos, mask=watermark)
     transparent.save(output_image_path)
+
+
+def send_like_email(follower, following):
+    context = {
+        'follower': follower,
+        'following': following
+    }
+    subject = render_to_string(
+        'emails/send_like_subject.txt',
+        context
+    )
+    body_text = render_to_string(
+        'emails/send_like_body.txt',
+        context
+    )
+    follower.email_user(subject, body_text)

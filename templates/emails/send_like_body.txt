@@ -1,0 +1,1 @@
+Вы понравились {{ following.first_name }}! Почта участника: {{ following.email }}
