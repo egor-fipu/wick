@@ -1,18 +1,29 @@
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers, viewsets, mixins, status, permissions
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import User, Follow
 from .serializers import (UserSerializer, UserGetTokenSerializer,
-                          FollowSerializer)
+                          FollowSerializer, UsersListSerializer)
 from .utilities import send_like_email
 
 
 class CreateUserViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+class UsersViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = User.objects.all()
+    serializer_class = UsersListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend,)
+    pagination_class = PageNumberPagination
+    filterset_fields = ('first_name', 'last_name', 'gender')
 
 
 class APIUserGetToken(APIView):

@@ -8,7 +8,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'email', 'password', 'first_name', 'last_name', 'gender', 'image'
+            'id', 'email', 'password', 'first_name', 'last_name', 'gender',
+            'image'
         )
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -27,6 +28,12 @@ class UserSerializer(serializers.ModelSerializer):
         user.username = user.email
         user.save()
         return user
+
+
+class UsersListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'gender', 'image')
 
 
 class UserGetTokenSerializer(serializers.ModelSerializer):
