@@ -1,3 +1,4 @@
+import requests
 from PIL import Image, ImageOps, ImageDraw, ImageFont
 from django.template.loader import render_to_string
 
@@ -47,3 +48,23 @@ def send_like_email(follower, following):
         context
     )
     follower.email_user(subject, body_text)
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+def get_coord(request):
+    ip = get_client_ip(request)
+    if ip == '127.0.0.1':
+        ip = ''
+    ip_response = requests.get('http://ipwhois.app/json/' + ip)
+    ipgeolocation = ip_response.json()
+    latitude = ipgeolocation.get('latitude')
+    longitude = ipgeolocation.get('longitude')
+    return latitude, longitude

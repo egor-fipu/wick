@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers, viewsets, mixins, status, permissions
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -22,8 +21,18 @@ class UsersViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = UsersListSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (DjangoFilterBackend,)
-    pagination_class = PageNumberPagination
     filterset_fields = ('first_name', 'last_name', 'gender')
+
+    def get_queryset(self):
+        user = self.request.user
+        if 'dist' in self.request.query_params and user.latitude is not None:
+            new_queryset = User.locations.nearby(
+                user.latitude,
+                user.longitude,
+                self.request.query_params['dist']
+            )
+            return new_queryset
+        return self.queryset
 
 
 class APIUserGetToken(APIView):

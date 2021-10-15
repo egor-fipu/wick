@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from users.models import User, Follow
-from .utilities import watermark_photo
+from .utilities import watermark_photo, get_coord
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -15,6 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
+        latitude, longitude = get_coord(self.context['request'])
 
         watermark_photo(
             validated_data['image'],
@@ -26,6 +27,8 @@ class UserSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(password)
         user.username = user.email
+        user.latitude = latitude
+        user.longitude = longitude
         user.save()
         return user
 
