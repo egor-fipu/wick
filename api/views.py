@@ -71,7 +71,7 @@ class APIFollow(APIView):
             send_like_email(follower=follower, following=following)
             send_like_email(follower=following, following=follower)
             data = {
-                'message': f'Вы тоже понравились {following.first_name}, '
+                'message': f'Вы тоже понравились {following.first_name}! '
                            f'Почта участника: {following.email}'
             }
             return Response(data=data, status=status.HTTP_200_OK)

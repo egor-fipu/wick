@@ -62,6 +62,6 @@ class FollowSerializer(serializers.ModelSerializer):
         if Follow.objects.filter(follower=follower,
                                  following=following).exists():
             raise serializers.ValidationError({
-                'following': 'Ошибка: Вы уже лайкнули этого пользователя'
+                'following': 'Ошибка: Вы уже оценивали этого пользователя'
             })
         return data
