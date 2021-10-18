@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from users.models import User, Follow
 from products.models import Notebook
-from .utilities import get_coord
+from .services import get_coord
 
 
 class UserSerializer(serializers.ModelSerializer):

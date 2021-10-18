@@ -12,20 +12,12 @@ from .filters import NotebookFilter, UserFilter
 from .serializers import (UserSerializer, UserGetTokenSerializer,
                           FollowSerializer, UsersListSerializer,
                           NotebookSerializer)
-from .utilities import check_follow
+from .services import check_follow
 
 
 class CreateUserViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-
-class UsersViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    queryset = User.objects.all()
-    serializer_class = UsersListSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = UserFilter
 
 
 class APIUserGetToken(APIView):
@@ -44,6 +36,14 @@ class APIUserGetToken(APIView):
             }
             return Response(data=data, status=status.HTTP_200_OK)
         raise serializers.ValidationError({'password': 'Неверный пароль'})
+
+
+class UsersViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = User.objects.all()
+    serializer_class = UsersListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = UserFilter
 
 
 class APIFollow(APIView):
