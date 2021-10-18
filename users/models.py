@@ -1,25 +1,6 @@
+from PIL import Image, ImageOps
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.expressions import RawSQL
-
-
-class LocationManager(models.Manager):
-    def nearby(self, latitude, longitude, proximity):
-        gcd = """
-              6371 * acos(
-               cos(radians(%s)) * cos(radians(latitude))
-               * cos(radians(longitude) - radians(%s)) +
-               sin(radians(%s)) * sin(radians(latitude))
-              )
-              """
-        return self.get_queryset() \
-            .exclude(latitude=None) \
-            .exclude(longitude=None) \
-            .annotate(distance=RawSQL(gcd, (latitude,
-                                            longitude,
-                                            latitude))) \
-            .filter(distance__lt=proximity) \
-            .order_by('distance')
 
 
 class User(AbstractUser):
@@ -44,17 +25,7 @@ class User(AbstractUser):
         max_length=6,
         choices=GENDER,
     )
-    image = models.ImageField(upload_to='users/')
-    username = models.CharField(
-        'username',
-        max_length=150,
-        unique=True,
-        error_messages={
-            'unique': 'A user with that username already exists.',
-        },
-        blank=True,
-    )
-    locations = LocationManager()
+    image = models.ImageField(upload_to='users/', blank=True, null=True)
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
 
@@ -65,6 +36,27 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def save(self, *args, **kwargs):
+        super().save()
+        if not self.image:
+            return
+        img = Image.open(self.image.path)
+        img = ImageOps.exif_transpose(img)
+
+        fixed_height = 500
+        width_size = int(fixed_height * img.width / img.height)
+        img = img.resize((width_size, fixed_height), Image.ANTIALIAS)
+        width, height = (width_size, fixed_height)
+
+        watermark = Image.open('users/media/watermark.png')
+        watermark.thumbnail((150, 100))
+        mark_width, mark_height = watermark.size
+        paste_mask = watermark.split()[3].point(lambda i: i * 50 / 100)
+        x = width - mark_width - 10
+        y = height - mark_height - 10
+        img.paste(watermark, (x, y), mask=paste_mask)
+        img.save(self.image.path)
 
 
 class Follow(models.Model):

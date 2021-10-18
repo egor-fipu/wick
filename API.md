@@ -18,7 +18,7 @@ POST-запрос /api/clients/create/
     "first_name": "String",
     "last_name": "String",
     "gender": "male",
-    "image": "/media/users/example%40example.ru.png"
+    "image": "/media/users/image.jpg"
 }
 ```
 
@@ -71,7 +71,7 @@ POST-запрос /api/clients/{id}/match/
 
 ### Просмотр списка участников 
 GET-запрос /api/list/ (дополнительные параметры поиска 
-/?dist=1&first_name=String&last_name=String&gender=female)
+/?distance=1&first_name=String&last_name=String&gender=female)
 
 Ответ
 ```
@@ -85,7 +85,7 @@ GET-запрос /api/list/ (дополнительные параметры п�
             "first_name": "String",
             "last_name": "String",
             "gender": "female",
-            "image": "/media/users/example%40example.ru.png"
+            "image": "/media/users/image.jpg"
         },
         ...
     ]

@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from users.models import User, Follow
-from .utilities import watermark_photo, get_coord
+from products.models import Notebook
+from .utilities import get_coord
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -16,13 +17,6 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         latitude, longitude = get_coord(self.context['request'])
-
-        watermark_photo(
-            validated_data['image'],
-            f'users/media/users/{validated_data["email"]}.png',
-            pos=(0, 0)
-        )
-        validated_data['image'] = f'users/{validated_data["email"]}.png'
 
         user = User(**validated_data)
         user.set_password(password)
@@ -65,3 +59,11 @@ class FollowSerializer(serializers.ModelSerializer):
                 'following': 'Ошибка: Вы уже оценивали этого пользователя'
             })
         return data
+
+
+class NotebookSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(slug_field='title', read_only=True)
+
+    class Meta:
+        model = Notebook
+        exclude = ('created',)

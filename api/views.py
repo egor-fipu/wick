@@ -1,14 +1,18 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import serializers, viewsets, mixins, status, permissions
+from rest_framework import (serializers, viewsets, mixins, status, permissions,
+                            filters)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from users.models import User, Follow
+from products.models import Notebook
+from users.models import User
+from .filters import NotebookFilter, UserFilter
 from .serializers import (UserSerializer, UserGetTokenSerializer,
-                          FollowSerializer, UsersListSerializer)
-from .utilities import send_like_email
+                          FollowSerializer, UsersListSerializer,
+                          NotebookSerializer)
+from .utilities import check_follow
 
 
 class CreateUserViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -21,18 +25,7 @@ class UsersViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = UsersListSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('first_name', 'last_name', 'gender')
-
-    def get_queryset(self):
-        user = self.request.user
-        if 'dist' in self.request.query_params and user.latitude is not None:
-            new_queryset = User.locations.nearby(
-                user.latitude,
-                user.longitude,
-                self.request.query_params['dist']
-            )
-            return new_queryset
-        return self.queryset
+    filterset_class = UserFilter
 
 
 class APIUserGetToken(APIView):
@@ -66,13 +59,16 @@ class APIFollow(APIView):
         serializer = FollowSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        if Follow.objects.filter(follower=following,
-                                 following=follower).exists():
-            send_like_email(follower=follower, following=following)
-            send_like_email(follower=following, following=follower)
-            data = {
-                'message': f'Вы тоже понравились {following.first_name}! '
-                           f'Почта участника: {following.email}'
-            }
+        data = check_follow(follower, following)
+        if data:
             return Response(data=data, status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class NotebookViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Notebook.objects.all()
+    serializer_class = NotebookSerializer
+    filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
+    filterset_class = NotebookFilter
+    ordering_fields = ('price',)
+    filterset_fields = ('name',)

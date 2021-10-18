@@ -40,9 +40,9 @@ class Command(BaseCommand):
                 except Exception as error:
                     print(f'{error} -Ошибка создания объекта модели')
 
+            page_number += 1
             url = f'https://www.citilink.ru/catalog/noutbuki/?p={page_number}'
             response = requests.get(url)
-            page_number += 1
 
         try:
             Notebook.objects.bulk_create(obj_list)
